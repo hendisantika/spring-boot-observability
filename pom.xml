@@ -15,7 +15,7 @@
     <description>spring-boot-observability</description>
     <modules>
         <module>fraud-detection-service</module>
-        <module>loan-service</module>
+        <!--        <module>loan-service</module>-->
     </modules>
     <properties>
         <java.version>23</java.version>
