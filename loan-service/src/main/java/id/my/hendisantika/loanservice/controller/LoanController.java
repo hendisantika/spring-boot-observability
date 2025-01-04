@@ -1,9 +1,15 @@
 package id.my.hendisantika.loanservice.controller;
 
+import id.my.hendisantika.loanservice.dto.LoanDto;
 import id.my.hendisantika.loanservice.service.LoanService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * Created by IntelliJ IDEA.
@@ -16,9 +22,15 @@ import org.springframework.web.bind.annotation.RestController;
  * To change this template use File | Settings | File Templates.
  */
 @RestController
-@RequestMapping("/loan")
+@RequestMapping("/api/loans")
 @RequiredArgsConstructor
 public class LoanController {
 
     private final LoanService loanService;
+
+    @GetMapping
+    @ResponseStatus(HttpStatus.OK)
+    public List<LoanDto> listAllLoans() {
+        return loanService.listAllLoans();
+    }
 }
