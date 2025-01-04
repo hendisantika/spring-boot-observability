@@ -33,10 +33,10 @@ jobs:
       with:
         token: ${{ secrets.TC_CLOUD_TOKEN }}
 
-    - name: Build with Maven
+    - name: Build with Maven for loan-service
       run: mvn -B package --file loan-service/pom.xml
 
-    - name: Build with Maven
+    - name: Build with Maven for fraud-detection-service
       run: mvn -B package --file fraud-detection-service/pom.xml
 
     # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
