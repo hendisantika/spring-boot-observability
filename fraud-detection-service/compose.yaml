@@ -13,5 +13,9 @@ services:
       - '3306'
     volumes:
       - my-db:/var/lib/mysql
+#    command: >
+#      bash -c "
+#      /docker-entrypoint-initdb.d/init-databases.sh
+#      "
 volumes:
   my-db:
