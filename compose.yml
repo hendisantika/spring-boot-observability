@@ -12,6 +12,8 @@ services:
     volumes:
       - ./mysql-data:/var/lib/mysql
       - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - my-network
   tempo:
     image: grafana/tempo:2.2.2
     command: [ "-config.file=/etc/tempo.yaml" ]
@@ -50,3 +52,8 @@ services:
       - "3000:3000"
 volumes:
   mysql-data:
+
+networks:
+  my-network:
+    driver: bridge
+
