@@ -26,10 +26,10 @@ public class FraudRecordRepository {
         var sql = """
                 SELECT COUNT(*) AS fraud__record_exists
                 FROM fraud_records
-                WHERE customerid = :customerid;
+                WHERE customer_id = :customerid;
                 """;
         return jdbcClient.sql(sql)
-                .param("customerId", customerId)
+                .param("customer_id", customerId)
                 .query(Integer.class)
                 .single() > 0;
     }
