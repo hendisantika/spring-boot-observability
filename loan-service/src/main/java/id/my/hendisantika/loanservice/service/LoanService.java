@@ -5,6 +5,8 @@ import id.my.hendisantika.loanservice.repository.LoanRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * Created by IntelliJ IDEA.
  * Project : spring-boot-observability
@@ -20,4 +22,12 @@ import org.springframework.stereotype.Service;
 public class LoanService {
     private final FraudDetectionClient fraudDetectionClient;
     private final LoanRepository loanRepository;
+
+    public List<LoanDto> listAllLoans() {
+        return loanRepository.findAll()
+                .stream()
+                .map(LoanDto::from)
+                .toList();
+    }
+
 }
