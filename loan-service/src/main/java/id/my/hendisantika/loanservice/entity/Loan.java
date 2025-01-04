@@ -1,5 +1,6 @@
 package id.my.hendisantika.loanservice.entity;
 
+import id.my.hendisantika.loanservice.dto.LoanDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

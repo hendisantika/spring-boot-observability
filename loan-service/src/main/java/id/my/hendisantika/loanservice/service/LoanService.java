@@ -1,6 +1,7 @@
 package id.my.hendisantika.loanservice.service;
 
 import id.my.hendisantika.loanservice.client.FraudDetectionClient;
+import id.my.hendisantika.loanservice.dto.LoanDto;
 import id.my.hendisantika.loanservice.entity.Loan;
 import id.my.hendisantika.loanservice.entity.LoanStatus;
 import id.my.hendisantika.loanservice.repository.LoanRepository;
