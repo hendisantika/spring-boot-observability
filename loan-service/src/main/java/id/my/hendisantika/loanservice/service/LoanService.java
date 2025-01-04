@@ -1,6 +1,8 @@
 package id.my.hendisantika.loanservice.service;
 
 import id.my.hendisantika.loanservice.client.FraudDetectionClient;
+import id.my.hendisantika.loanservice.entity.Loan;
+import id.my.hendisantika.loanservice.entity.LoanStatus;
 import id.my.hendisantika.loanservice.repository.LoanRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,4 +32,14 @@ public class LoanService {
                 .toList();
     }
 
+    public String applyLoan(LoanDto loanDto) {
+        var loan = Loan.from(loanDto);
+        LoanStatus loanStatus = fraudDetectionClient.evaluateLoan(loan.getCustomerId());
+        loan.setLoanStatus(loanStatus);
+        if (loanStatus.equals(LoanStatus.APPROVED)) {
+            loanRepository.save(loan);
+            return "Loan applied successfully";
+        }
+        return "Sorry! Your loan was not approved";
+    }
 }
