@@ -24,6 +24,7 @@ Run Fraud Detection Service Application
 2. Prometheus: http://localhost:9090
 3. Tempo: http://localhost:3110
 4. Loki: http://localhost:3100
+5. Loans: http://localhost:8080/api/loans
 
 ## Project Overview
 
