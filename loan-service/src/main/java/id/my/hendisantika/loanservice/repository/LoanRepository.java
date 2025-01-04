@@ -31,13 +31,13 @@ public class LoanRepository {
 
     @Transactional(readOnly = true)
     public List<Loan> findAll() {
-        var findQuery = "SELECT id, loanid, customername, customerid, amount, loanstatus FROM loans";
+        var findQuery = "SELECT id, loan_id, customer_name, customer_id, amount, loan_status FROM loans";
         return jdbcClient.sql(findQuery).query(Loan.class).list();
     }
 
     @Transactional
     public Long save(Loan loan) {
-        var insertQuery = "INSERT INTO loans(loanid, customername, customerid, amount, loanstatus) VALUES(?, ?, ?, ?, ?)";
+        var insertQuery = "INSERT INTO loans(loan_id, customer_name, customer_id, amount, loan_status) VALUES(?, ?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcClient.sql(insertQuery)
                 .param(1, UUID.randomUUID().toString())
