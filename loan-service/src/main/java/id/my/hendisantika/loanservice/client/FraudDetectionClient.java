@@ -26,7 +26,7 @@ public class FraudDetectionClient {
 
     public LoanStatus evaluateLoan(int customerId) {
         log.info("Calling Fraud Detection Service for customer id: {}", customerId);
-        var response = fraudServiceRestTemplate.exchange("/fraud/check?customerId=" + customerId,
+        var response = fraudServiceRestTemplate.exchange("/api/fraud/check?customerId=" + customerId,
                         HttpMethod.GET, null, LoanStatus.class)
                 .getBody();
         log.info("Fraud Detection Service response: {}", response);

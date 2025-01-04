@@ -26,7 +26,7 @@ public class FraudRecordRepository {
         var sql = """
                 SELECT COUNT(*) AS fraud__record_exists
                 FROM fraud_records
-                WHERE customer_id = :customerid;
+                WHERE customer_id = :customerId;
                 """;
         return jdbcClient.sql(sql)
                 .param("customer_id", customerId)
