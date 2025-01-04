@@ -4,10 +4,13 @@ import id.my.hendisantika.loanservice.entity.Loan;
 import io.micrometer.observation.annotation.Observed;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by IntelliJ IDEA.
@@ -30,5 +33,19 @@ public class LoanRepository {
     public List<Loan> findAll() {
         var findQuery = "SELECT id, loanid, customername, customerid, amount, loanstatus FROM loans";
         return jdbcClient.sql(findQuery).query(Loan.class).list();
+    }
+
+    @Transactional
+    public Long save(Loan loan) {
+        var insertQuery = "INSERT INTO loans(loanid, customername, customerid, amount, loanstatus) VALUES(?, ?, ?, ?, ?)";
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcClient.sql(insertQuery)
+                .param(1, UUID.randomUUID().toString())
+                .param(2, loan.getCustomerName())
+                .param(3, loan.getCustomerId())
+                .param(4, loan.getAmount())
+                .param(5, loan.getLoanStatus().toString())
+                .update();
+        return keyHolder.getKeyAs(Long.class);
     }
 }
