@@ -29,7 +29,7 @@ public class FraudRecordRepository {
                 WHERE customer_id = :customerId;
                 """;
         return jdbcClient.sql(sql)
-                .param("customer_id", customerId)
+                .param("customerId", customerId)
                 .query(Integer.class)
                 .single() > 0;
     }

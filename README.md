@@ -25,6 +25,7 @@ Run Fraud Detection Service Application
 3. Tempo: http://localhost:3110
 4. Loki: http://localhost:3100
 5. Loans: http://localhost:8080/api/loans
+6. Fraud: http://localhost:8081/api/frauds/check?customerId=105
 
 ## Project Overview
 
