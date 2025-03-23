@@ -14,14 +14,14 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 		properties = {
 				"management.endpoint.health.show-details=always",
 //				"spring.datasource.url=jdbc:tc:mysql:9.1.0:///fraud_detection?TC_INITSCRIPT=init.sql",
-				"spring.datasource.url=jdbc:tc:mysql:9.1.0:///fraud_detection",
+				"spring.datasource.url=jdbc:tc:mysql:9.2.0:///fraud_detection",
 		},
 		webEnvironment = RANDOM_PORT
 )
 class FraudDetectionServiceApplicationTests {
 
 	@Container
-	private static final MySQLContainer<?> mysqlContainer = new MySQLContainer<>("mysql:9.1.0")
+	private static final MySQLContainer<?> mysqlContainer = new MySQLContainer<>("mysql:9.2.0")
 			.withDatabaseName("fraud_detection")
 			.withUsername("yu71")
 			.withPassword("53cret");
