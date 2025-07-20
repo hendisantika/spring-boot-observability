@@ -1,14 +1,14 @@
 version: 2
 updates:
   - package-ecosystem: maven
-    directory: "/loan-service"
+    directory: "./loan-service"
     schedule:
       interval: daily
       time: '05:00'
       timezone: Asia/Jakarta
     open-pull-requests-limit: 10
   - package-ecosystem: maven
-    directory: "/fraud-detection-service"
+    directory: "./fraud-detection-service"
     schedule:
       interval: daily
       time: '05:00'
