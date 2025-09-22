@@ -15,7 +15,7 @@
     <description>fraud-detection-service</description>
     <properties>
         <lombok.version>1.18.40</lombok.version>
-        <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
+        <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
         <maven.compiler.proc>full</maven.compiler.proc>
         <java.version>21</java.version>
         <testcontainers.version>1.20.4</testcontainers.version>
