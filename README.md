@@ -101,14 +101,24 @@ curl http://localhost:8080/actuator/prometheus
 ## Deploying behind nginx
 
 `docker/nginx/jvm.my.id.conf` is a ready-to-install reverse proxy config that
-puts both services on the `jvm.my.id` domain over TLS:
+puts the two services and the Grafana dashboard on the `jvm.my.id` domain over TLS:
 
 | Host | Proxies to | Service |
 |---|---|---|
 | `loan.jvm.my.id` | `127.0.0.1:8080` | loan-service |
 | `fraud.jvm.my.id` | `127.0.0.1:8081` | fraud-detection-service |
+| `grafana.jvm.my.id` | `127.0.0.1:3000` | Grafana |
 
 Port 80 serves the ACME challenge and redirects everything else to HTTPS.
+
+> ⚠️ **Do not expose `grafana.jvm.my.id` as-is.** `compose.yml` runs Grafana with
+> `GF_AUTH_ANONYMOUS_ENABLED=true`, `GF_AUTH_ANONYMOUS_ORG_ROLE=Admin` and
+> `GF_AUTH_DISABLE_LOGIN_FORM=true`, which grants every visitor Admin with no
+> login at all. Harmless on localhost; on a public hostname it hands anyone who
+> finds the URL full Grafana admin, including the ability to add datasources
+> reaching anything on your network. Either drop those three environment
+> variables and log in properly, or switch on the `auth_basic` / IP-allowlist
+> block provided in the config.
 
 ### Install
 
@@ -121,8 +131,9 @@ sudo nginx -t && sudo systemctl reload nginx
 ### DNS
 
 ```
-loan.jvm.my.id    A   <server-ip>
-fraud.jvm.my.id   A   <server-ip>
+loan.jvm.my.id      A   <server-ip>
+fraud.jvm.my.id     A   <server-ip>
+grafana.jvm.my.id   A   <server-ip>
 ```
 
 ### Certificates
@@ -130,7 +141,7 @@ fraud.jvm.my.id   A   <server-ip>
 ```bash
 sudo mkdir -p /var/www/certbot
 sudo certbot certonly --webroot -w /var/www/certbot \
-     -d loan.jvm.my.id -d fraud.jvm.my.id
+     -d loan.jvm.my.id -d fraud.jvm.my.id -d grafana.jvm.my.id
 sudo systemctl reload nginx
 ```
 
@@ -140,7 +151,7 @@ can be served. Renewal is handled by certbot's own timer — check it with
 
 ### Notes
 
-* **`/actuator/` is restricted to loopback** on both hosts. `/actuator/prometheus`
+* **`/actuator/` is restricted to loopback** on both service hosts. `/actuator/prometheus`
   publishes JVM internals, HikariCP pool state and every URI the app has served.
   Prometheus scrapes the JVMs directly on `:8080` and `:8081` rather than through
   nginx, so nothing depends on it being publicly reachable. Widen the `allow`
@@ -156,6 +167,13 @@ can be served. Renewal is handled by certbot's own timer — check it with
   location block carries a commented allowlist to close it off again.
 * A `limit_req` zone is defined but not applied, so the file is safe to install
   as-is. Uncomment the `limit_req` lines to switch on rate limiting.
+* **Grafana needs `GF_SERVER_ROOT_URL=https://grafana.jvm.my.id`** in `compose.yml`.
+  It builds share links, alert links and OAuth redirects from `root_url`, which
+  otherwise defaults to `http://localhost:3000`.
+* **Grafana Live has its own `location` block** for the `/api/live/ws` WebSocket,
+  with buffering off and long timeouts. Without it live panels silently stall.
+  `X-Frame-Options` is deliberately not set on the Grafana host, since `DENY`
+  would break embedded panel iframes.
 
 ## Project Overview
 
