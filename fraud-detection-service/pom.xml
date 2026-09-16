@@ -18,6 +18,9 @@
         <maven-compiler-plugin.version>3.16.0</maven-compiler-plugin.version>
         <maven.compiler.proc>full</maven.compiler.proc>
         <java.version>25</java.version>
+        <!-- Override Spring Boot's 11.0.24 pin: CVE-2026-65182, CVE-2026-65905
+             and CVE-2026-68525 are fixed in 11.0.25. Drop once Boot catches up. -->
+        <tomcat.version>11.0.25</tomcat.version>
     </properties>
     <dependencies>
         <dependency>
