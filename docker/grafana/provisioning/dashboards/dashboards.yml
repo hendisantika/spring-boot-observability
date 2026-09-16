@@ -1,0 +1,15 @@
+apiVersion: 1
+
+providers:
+  - name: spring-boot-observability
+    orgId: 1
+    type: file
+    # Keep dashboards deleted from disk out of the UI on restart.
+    disableDeletion: false
+    # Edits made in the UI survive until the file changes on disk; set false to
+    # make the file the only source of truth.
+    allowUiUpdates: true
+    updateIntervalSeconds: 30
+    options:
+      path: /var/lib/grafana/dashboards
+      foldersFromFilesStructure: false

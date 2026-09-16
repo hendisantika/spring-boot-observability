@@ -98,6 +98,19 @@ curl http://localhost:8080/actuator/prometheus
 * **Logs** — Loki4j pushes to `http://localhost:3100/loki/api/v1/push` with the labels `application`,
   `host` and `level`. Every line carries `[application,traceId,spanId]` via
   `logging.pattern.correlation`, so a trace in Tempo can be pivoted to its logs in Loki.
+* **Dashboards** — the *Spring Boot Statistics* dashboard is provisioned from
+  `docker/grafana/dashboards/`, so it is present on first start with no manual
+  import. Datasources come from `docker/grafana/provisioning/datasources/`, and
+  Prometheus is pinned to `uid: prometheus` so the dashboard's panels resolve
+  against it on a fresh container.
+
+```
+docker/grafana/
+├── provisioning/
+│   ├── datasources/datasource.yml   # Prometheus, Tempo, Loki
+│   └── dashboards/dashboards.yml    # file provider -> /var/lib/grafana/dashboards
+└── dashboards/dashboard.json        # Spring Boot Statistics
+```
 
 ## Configuration
 

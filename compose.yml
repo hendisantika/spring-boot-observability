@@ -43,7 +43,8 @@ services:
   grafana:
     image: grafana/grafana:12.4.11
     volumes:
-      - ./docker/grafana:/etc/grafana/provisioning/datasources:ro
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./docker/grafana/dashboards:/var/lib/grafana/dashboards:ro
     environment:
       # Admin credentials. Defaults are fine locally; set real ones in .env
       # (git-ignored) before exposing Grafana. See .env.example.
