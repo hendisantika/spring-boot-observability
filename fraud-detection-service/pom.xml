@@ -17,7 +17,7 @@
         <lombok.version>1.18.48</lombok.version>
         <maven-compiler-plugin.version>3.16.0</maven-compiler-plugin.version>
         <maven.compiler.proc>full</maven.compiler.proc>
-        <java.version>21</java.version>
+        <java.version>25</java.version>
         <testcontainers.version>1.20.4</testcontainers.version>
     </properties>
     <dependencies>
