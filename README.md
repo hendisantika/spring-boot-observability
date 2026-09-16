@@ -61,7 +61,7 @@ use the `docker compose` MySQL.
 
 | Service | URL |
 |---|---|
-| Grafana | http://localhost:3000 (log in with `admin` / `admin`, or your `.env` values) |
+| Grafana | http://localhost:3000 (log in with `admin` / `admin`, or your `.env` values) — the *Spring Boot Statistics* dashboard is provisioned automatically |
 | Prometheus | http://localhost:9090 |
 | Loki | http://localhost:3100 |
 | Tempo | in-network only — Grafana reaches it at `http://tempo:3200`; the Zipkin ingest port is http://localhost:9411 |
@@ -98,19 +98,45 @@ curl http://localhost:8080/actuator/prometheus
 * **Logs** — Loki4j pushes to `http://localhost:3100/loki/api/v1/push` with the labels `application`,
   `host` and `level`. Every line carries `[application,traceId,spanId]` via
   `logging.pattern.correlation`, so a trace in Tempo can be pivoted to its logs in Loki.
-* **Dashboards** — the *Spring Boot Statistics* dashboard is provisioned from
-  `docker/grafana/dashboards/`, so it is present on first start with no manual
-  import. Datasources come from `docker/grafana/provisioning/datasources/`, and
-  Prometheus is pinned to `uid: prometheus` so the dashboard's panels resolve
-  against it on a fresh container.
+* **Dashboards** — *Spring Boot Statistics* is provisioned from disk, so it is
+  there on first start with nothing to import. See below.
+
+### Dashboards and provisioning
+
+Everything Grafana needs is provisioned from files, so a fresh container comes
+up fully configured:
 
 ```
 docker/grafana/
-├── provisioning/
-│   ├── datasources/datasource.yml   # Prometheus, Tempo, Loki
-│   └── dashboards/dashboards.yml    # file provider -> /var/lib/grafana/dashboards
-└── dashboards/dashboard.json        # Spring Boot Statistics
+├── provisioning/                     -> /etc/grafana/provisioning
+│   ├── datasources/datasource.yml       Prometheus, Tempo, Loki
+│   └── dashboards/dashboards.yml        file provider
+└── dashboards/                       -> /var/lib/grafana/dashboards
+    └── dashboard.json                   Spring Boot Statistics
 ```
+
+The two directories are mounted separately in `compose.yml`. Grafana's
+datasource provisioner reads only `.yaml`/`.yml`, which is why dashboards live
+outside it and are picked up by their own file provider instead.
+
+Prometheus is pinned to `uid: prometheus` in `datasource.yml`. Without an
+explicit uid Grafana mints a random one on each fresh start, and a provisioned
+dashboard referencing it would resolve to nothing.
+
+**Adding a dashboard** — drop the `.json` into `docker/grafana/dashboards/`. The
+provider rescans every 30s, so it appears without a restart.
+
+**Editing a dashboard** — the provider sets `allowUiUpdates: true`, so changes
+made in the UI stick until the file changes on disk. That also means the UI and
+the committed file can drift; export deliberately rather than assuming a save in
+the browser reached the repo. Set it `false` in `dashboards.yml` to make the
+file the only source of truth.
+
+> When exporting, turn **"Export for sharing externally" off**. On it, Grafana
+> replaces datasource uids with `${DS_...}` placeholders and adds an `__inputs`
+> block that only the import UI can resolve — provisioning does not substitute
+> them, and every panel ends up pointing at a datasource that does not exist.
+> That is the state `dashboard.json` was in before it was provisioned.
 
 ## Configuration
 
