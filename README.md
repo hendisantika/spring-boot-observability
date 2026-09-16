@@ -12,6 +12,7 @@ dashboarded in Grafana.
 | Spring Boot | 4.1.1 |
 | Build | Maven — use the bundled wrapper `./mvnw` |
 | Runtime deps | Docker + Docker Compose (MySQL and the Grafana stack) |
+| Grafana | 12.4.11 — Angular panels were removed in Grafana 12, see [#103](../../issues/103) |
 | Tests | Testcontainers 2.x — needs a running Docker daemon |
 
 Point `JAVA_HOME` at a JDK 25 install before building, e.g.:
