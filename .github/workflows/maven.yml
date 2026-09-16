@@ -19,6 +19,11 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    # The dependency submission step below writes a snapshot through the
+    # Dependency Graph API, which the default read-only token cannot do.
+    permissions:
+      contents: write
+
     steps:
     - uses: actions/checkout@v7
     - name: Set up JDK 25
