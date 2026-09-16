@@ -31,3 +31,10 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### macOS ###
+.DS_Store
+
+### Docker Compose runtime data ###
+mysql-data/
+docker/tempo/tempo-data/
