@@ -6,7 +6,7 @@ services:
       MYSQL_PASSWORD: '53cret'
       MYSQL_ROOT_PASSWORD: '53cret'
     ports:
-      - "3308:3306"
+      - "33081:3306"
     expose:
       - '3306'
     volumes:
