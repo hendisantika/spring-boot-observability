@@ -2562,7 +2562,7 @@
       "pluginVersion": "8.5.2",
       "targets": [
         {
-          "expr": "tomcat_threads_config_max{instance=\"$instance\", application=\"$application\"}",
+          "expr": "tomcat_threads_config_max_threads{instance=\"$instance\", application=\"$application\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "",
@@ -2614,7 +2614,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "tomcat_threads_current{instance=\"$instance\", application=\"$application\"}",
+          "expr": "tomcat_threads_current_threads{instance=\"$instance\", application=\"$application\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "Current thread",
@@ -2622,7 +2622,7 @@
           "datasource": "prometheus"
         },
         {
-          "expr": "tomcat_threads_busy{instance=\"$instance\", application=\"$application\"}",
+          "expr": "tomcat_threads_busy_threads{instance=\"$instance\", application=\"$application\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "Current thread busy",
