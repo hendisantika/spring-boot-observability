@@ -60,7 +60,7 @@ use the `docker compose` MySQL.
 
 | Service | URL |
 |---|---|
-| Grafana | http://localhost:3000 |
+| Grafana | http://localhost:3000 (log in with `admin` / `admin`, or your `.env` values) |
 | Prometheus | http://localhost:9090 |
 | Loki | http://localhost:3100 |
 | Tempo | in-network only — Grafana reaches it at `http://tempo:3200`; the Zipkin ingest port is http://localhost:9411 |
@@ -98,6 +98,33 @@ curl http://localhost:8080/actuator/prometheus
   `host` and `level`. Every line carries `[application,traceId,spanId]` via
   `logging.pattern.correlation`, so a trace in Tempo can be pivoted to its logs in Loki.
 
+## Configuration
+
+Copy `.env.example` to `.env` and edit it; `docker compose` picks it up
+automatically. `.env` is git-ignored, so real credentials never get committed.
+
+```bash
+cp .env.example .env
+docker compose up -d
+```
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `GF_SECURITY_ADMIN_USER` | `admin` | Grafana admin username |
+| `GF_SECURITY_ADMIN_PASSWORD` | `admin` | Grafana admin password |
+| `GF_SERVER_ROOT_URL` | `http://localhost:3000` | Public URL Grafana builds share and alert links from |
+
+The two Grafana credentials apply **on first start only** — Grafana stores users
+in its own database, so editing `.env` afterwards changes nothing for an
+existing install. To change the password later:
+
+```bash
+docker compose exec grafana grafana-cli admin reset-admin-password '<new-password>'
+```
+
+Anonymous Admin access is not enabled: Grafana requires a real login, which is
+what makes it safe to put behind a public hostname.
+
 ## Deploying behind nginx
 
 `docker/nginx/jvm.my.id.conf` is a ready-to-install reverse proxy config that
@@ -111,14 +138,10 @@ puts the two services and the Grafana dashboard on the `jvm.my.id` domain over T
 
 Port 80 serves the ACME challenge and redirects everything else to HTTPS.
 
-> ⚠️ **Do not expose `grafana.jvm.my.id` as-is.** `compose.yml` runs Grafana with
-> `GF_AUTH_ANONYMOUS_ENABLED=true`, `GF_AUTH_ANONYMOUS_ORG_ROLE=Admin` and
-> `GF_AUTH_DISABLE_LOGIN_FORM=true`, which grants every visitor Admin with no
-> login at all. Harmless on localhost; on a public hostname it hands anyone who
-> finds the URL full Grafana admin, including the ability to add datasources
-> reaching anything on your network. Either drop those three environment
-> variables and log in properly, or switch on the `auth_basic` / IP-allowlist
-> block provided in the config.
+Grafana requires a real login — set `GF_SECURITY_ADMIN_USER` and
+`GF_SECURITY_ADMIN_PASSWORD` in `.env` before exposing it (see
+[Configuration](#configuration)). For a second layer in front, the config
+carries commented `auth_basic` and IP-allowlist blocks.
 
 ### Install
 
@@ -167,9 +190,11 @@ can be served. Renewal is handled by certbot's own timer — check it with
   location block carries a commented allowlist to close it off again.
 * A `limit_req` zone is defined but not applied, so the file is safe to install
   as-is. Uncomment the `limit_req` lines to switch on rate limiting.
-* **Grafana needs `GF_SERVER_ROOT_URL=https://grafana.jvm.my.id`** in `compose.yml`.
-  It builds share links, alert links and OAuth redirects from `root_url`, which
-  otherwise defaults to `http://localhost:3000`.
+* **Set `GF_SERVER_ROOT_URL` when proxying**, or Grafana builds share and alert
+  links against `http://localhost:3000`. Put it in `.env`, or pass it inline:
+  ```bash
+  GF_SERVER_ROOT_URL=https://grafana.jvm.my.id docker compose up -d
+  ```
 * **Grafana Live has its own `location` block** for the `/api/live/ws` WebSocket,
   with buffering off and long timeouts. Without it live panels silently stall.
   `X-Frame-Options` is deliberately not set on the Grafana host, since `DENY`

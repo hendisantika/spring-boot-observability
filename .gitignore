@@ -38,3 +38,7 @@ build/
 ### Docker Compose runtime data ###
 mysql-data/
 docker/tempo/tempo-data/
+
+### Local secrets ###
+.env
+!.env.example
