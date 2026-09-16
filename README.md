@@ -140,6 +140,8 @@ file the only source of truth.
 
 ## Configuration
 
+### Grafana (`.env`)
+
 Copy `.env.example` to `.env` and edit it; `docker compose` picks it up
 automatically. `.env` is git-ignored, so real credentials never get committed.
 
@@ -164,6 +166,24 @@ docker compose exec grafana grafana-cli admin reset-admin-password '<new-passwor
 
 Anonymous Admin access is not enabled: Grafana requires a real login, which is
 what makes it safe to put behind a public hostname.
+
+### Services (`application.properties`)
+
+Both services carry the same settings, differing only in name, port and
+database. The ones that are not obvious:
+
+| Property | Why it is there |
+|---|---|
+| `server.forward-headers-strategy=framework` | Trust `X-Forwarded-*` from the nginx proxy. Without it both services see every request as plain `http` from `127.0.0.1`, generating wrong-scheme URLs and logging the proxy as the client. |
+| `server.tomcat.mbeanregistry.enabled=true` | Tomcat's MBean registry is off by default, and Micrometer cannot bind `tomcat_threads_*` / `tomcat_global_*` without it. The dashboard's whole Tomcat row depends on this. |
+| `management.metrics.tags.application=${spring.application.name}` | Puts the `application` label on **every** meter. `management.observations.key-values` tags observations only, so `jvm_*`, `hikaricp_*` and `tomcat_*` would otherwise have no such label and the dashboard's Application filter would match nothing. |
+| `management.observations.key-values.application=${spring.application.name}` | Same value as the line above, so observations and plain meters agree. Both derive from `spring.application.name`; hard-coding one of them lets a service report under two different names. |
+| `management.tracing.sampling.probability=1.0` | Sample every request. Fine for a demo, far too high for production. |
+| `logging.pattern.correlation=[${spring.application.name:},%X{traceId:-},%X{spanId:-}]` | Puts `[app,traceId,spanId]` on every log line, which is what lets a Tempo trace be pivoted to its Loki logs. |
+| `spring.docker.compose.enabled=false` | Stop Boot's Docker Compose support from starting `compose.yml` itself — the README brings the stack up explicitly. |
+
+Datasource credentials are checked in (`yu71` / `53cret`) because the whole
+stack is local and disposable. Move them out before this runs anywhere real.
 
 ## Deploying behind nginx
 
@@ -220,9 +240,8 @@ can be served. Renewal is handled by certbot's own timer — check it with
   nginx, so nothing depends on it being publicly reachable. Widen the `allow`
   rules in the config if you scrape from another host.
 * **Both services set `server.forward-headers-strategy=framework`**, without which
-  Spring Boot ignores the `X-Forwarded-*` headers nginx sends and treats every
-  request as plain `http` from `127.0.0.1` — generating wrong-scheme URLs and
-  logging the proxy as the client.
+  Spring Boot ignores the `X-Forwarded-*` headers nginx sends — see
+  [Configuration](#services-applicationproperties).
 * **`http2 on;` needs nginx ≥ 1.25.1.** On older builds (Ubuntu 20.04 ships 1.18)
   remove those lines and use `listen 443 ssl http2;` instead.
 * **fraud-detection-service does not need to be public.** loan-service reaches it
