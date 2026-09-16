@@ -98,6 +98,65 @@ curl http://localhost:8080/actuator/prometheus
   `host` and `level`. Every line carries `[application,traceId,spanId]` via
   `logging.pattern.correlation`, so a trace in Tempo can be pivoted to its logs in Loki.
 
+## Deploying behind nginx
+
+`docker/nginx/jvm.my.id.conf` is a ready-to-install reverse proxy config that
+puts both services on the `jvm.my.id` domain over TLS:
+
+| Host | Proxies to | Service |
+|---|---|---|
+| `loan.jvm.my.id` | `127.0.0.1:8080` | loan-service |
+| `fraud.jvm.my.id` | `127.0.0.1:8081` | fraud-detection-service |
+
+Port 80 serves the ACME challenge and redirects everything else to HTTPS.
+
+### Install
+
+```bash
+sudo cp docker/nginx/jvm.my.id.conf /etc/nginx/sites-available/jvm.my.id.conf
+sudo ln -s /etc/nginx/sites-available/jvm.my.id.conf /etc/nginx/sites-enabled/
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+### DNS
+
+```
+loan.jvm.my.id    A   <server-ip>
+fraud.jvm.my.id   A   <server-ip>
+```
+
+### Certificates
+
+```bash
+sudo mkdir -p /var/www/certbot
+sudo certbot certonly --webroot -w /var/www/certbot \
+     -d loan.jvm.my.id -d fraud.jvm.my.id
+sudo systemctl reload nginx
+```
+
+Issue the certificates with only the port 80 block enabled, so the challenge
+can be served. Renewal is handled by certbot's own timer — check it with
+`systemctl list-timers | grep certbot`.
+
+### Notes
+
+* **`/actuator/` is restricted to loopback** on both hosts. `/actuator/prometheus`
+  publishes JVM internals, HikariCP pool state and every URI the app has served.
+  Prometheus scrapes the JVMs directly on `:8080` and `:8081` rather than through
+  nginx, so nothing depends on it being publicly reachable. Widen the `allow`
+  rules in the config if you scrape from another host.
+* **Both services set `server.forward-headers-strategy=framework`**, without which
+  Spring Boot ignores the `X-Forwarded-*` headers nginx sends and treats every
+  request as plain `http` from `127.0.0.1` — generating wrong-scheme URLs and
+  logging the proxy as the client.
+* **`http2 on;` needs nginx ≥ 1.25.1.** On older builds (Ubuntu 20.04 ships 1.18)
+  remove those lines and use `listen 443 ssl http2;` instead.
+* **fraud-detection-service does not need to be public.** loan-service reaches it
+  over loopback on `:8081`; the config exposes it for convenience, and the
+  location block carries a commented allowlist to close it off again.
+* A `limit_req` zone is defined but not applied, so the file is safe to install
+  as-is. Uncomment the `limit_req` lines to switch on rate limiting.
+
 ## Project Overview
 
 ![Observability](img/observability.png "Observability")
