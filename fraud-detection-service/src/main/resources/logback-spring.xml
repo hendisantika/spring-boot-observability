@@ -8,15 +8,15 @@
         <http>
             <url>http://localhost:3100/loki/api/v1/push</url>
         </http>
-        <format>
-            <label>
-                <pattern>application=${appName},host=${HOSTNAME},level=%level</pattern>
-            </label>
-            <message>
-                <pattern>${FILE_LOG_PATTERN}</pattern>
-            </message>
-            <sortByTime>true</sortByTime>
-        </format>
+        <labels>
+            application = %property{appName}
+            service_name = %property{appName}
+            host = ${HOSTNAME}
+            level = %level
+        </labels>
+        <message class="ch.qos.logback.classic.PatternLayout">
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+        </message>
     </appender>
 
     <root level="INFO">
