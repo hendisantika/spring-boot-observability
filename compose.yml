@@ -41,6 +41,10 @@ services:
       - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     ports:
       - "9090:9090"
+    # prometheus.yml scrapes the services at host.docker.internal, which only
+    # resolves on Docker Desktop. This makes it work on plain Linux (CI) too.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   grafana:
     image: grafana/grafana:12.4.11

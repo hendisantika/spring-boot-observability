@@ -83,6 +83,11 @@ approved and rejected loan paths plus one deliberate 404, then checks:
 Finally it prints Grafana links, including the traceId to paste into Explore.
 Exit code is 0 only if everything arrived, so it works in CI too.
 
+CI runs it too: the `smoke-test` job in `.github/workflows/maven.yml` brings the
+stack up, starts both services and runs this script on every push, so a change
+that quietly breaks tracing or log correlation fails the build rather than being
+discovered in Grafana later.
+
 Overridable by environment variable — `LOAN_URL`, `FRAUD_URL`, `LOKI_URL`,
 `TEMPO_URL`, `PROM_URL`, `GRAFANA_URL`, `WAIT_TRIES` — so the same script can be
 pointed at a deployed environment:

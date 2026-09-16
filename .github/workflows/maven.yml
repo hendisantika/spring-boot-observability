@@ -47,3 +47,56 @@ jobs:
     # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
     - name: Update dependency graph
       uses: advanced-security/maven-dependency-submission-action@a64327a7329c9939cf675e458452febe1894a70c
+
+  # Brings the Grafana stack up, runs both services against it, and asserts the
+  # telemetry actually lands — metrics in Prometheus, logs in Loki, and the
+  # matching trace in Tempo spanning both services.
+  smoke-test:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v7
+    - name: Set up JDK 25
+      uses: actions/setup-java@v6
+      with:
+        java-version: '25'
+        distribution: 'temurin'
+        cache: maven
+
+    # Tests already run in the build job; this one only needs the jars.
+    - name: Build jars
+      run: mvn -B -DskipTests package
+
+    - name: Start the observability stack
+      run: docker compose up -d
+
+    - name: Wait for MySQL
+      run: |
+        for _ in $(seq 1 60); do
+          if docker compose exec -T mysql mysqladmin ping -h127.0.0.1 -uroot -p53cret --silent 2>/dev/null; then
+            echo "MySQL ready"; exit 0
+          fi
+          sleep 2
+        done
+        echo "MySQL never became ready"; docker compose logs mysql; exit 1
+
+    # Flyway runs on startup, so these must come after MySQL is up. The smoke
+    # script waits for both to report healthy before it sends any traffic.
+    - name: Start the services
+      run: |
+        nohup java -jar loan-service/target/loan-service-*.jar > loan.log 2>&1 &
+        nohup java -jar fraud-detection-service/target/fraud-detection-service-*.jar > fraud.log 2>&1 &
+
+    - name: Smoke test
+      run: ./scripts/smoke-test.sh 10
+
+    - name: Diagnostics on failure
+      if: failure()
+      run: |
+        echo "::group::loan-service";            tail -n 120 loan.log  || true; echo "::endgroup::"
+        echo "::group::fraud-detection-service"; tail -n 120 fraud.log || true; echo "::endgroup::"
+        echo "::group::prometheus targets"
+        curl -s http://localhost:9090/api/v1/targets?state=active || true
+        echo "::endgroup::"
+        echo "::group::compose"; docker compose ps -a; docker compose logs --tail=60 || true; echo "::endgroup::"
