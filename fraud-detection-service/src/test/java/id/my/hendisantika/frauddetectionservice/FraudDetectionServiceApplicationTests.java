@@ -15,6 +15,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 				"management.endpoint.health.show-details=always",
 //				"spring.datasource.url=jdbc:tc:mysql:9.1.0:///fraud_detection?TC_INITSCRIPT=init.sql",
 				"spring.datasource.url=jdbc:tc:mysql:9.2.0:///fraud_detection",
+				"spring.datasource.driver-class-name=org.testcontainers.jdbc.ContainerDatabaseDriver",
 		},
 		webEnvironment = RANDOM_PORT
 )

@@ -13,14 +13,15 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @SpringBootTest(
         properties = {
                 "management.endpoint.health.show-details=always",
-                "spring.datasource.url=jdbc:tc:mysql:9.2.0:///loan_service",
+                "spring.datasource.url=jdbc:tc:mysql:9.3.0:///loan_service",
+                "spring.datasource.driver-class-name=org.testcontainers.jdbc.ContainerDatabaseDriver",
         },
         webEnvironment = RANDOM_PORT
 )
 class LoanServiceApplicationTests {
 
     @Container
-    private static final MySQLContainer<?> mysqlContainer = new MySQLContainer<>("mysql:9.2.0")
+    private static final MySQLContainer<?> mysqlContainer = new MySQLContainer<>("mysql:9.3.0")
             .withDatabaseName("loan_service")
             .withUsername("yu71")
             .withPassword("53cret");
