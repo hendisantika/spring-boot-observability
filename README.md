@@ -57,6 +57,40 @@ Both services run Flyway migrations on startup, so MySQL must be up first.
 The tests start their own MySQL containers via Testcontainers, so Docker must be running — they do **not**
 use the `docker compose` MySQL.
 
+## Smoke test
+
+`scripts/smoke-test.sh` drives both services and then proves the telemetry
+actually arrived, rather than leaving you to eyeball Grafana and guess.
+
+```bash
+docker compose up -d
+java -jar loan-service/target/loan-service-0.0.1-SNAPSHOT.jar &
+java -jar fraud-detection-service/target/fraud-detection-service-0.0.1-SNAPSHOT.jar &
+
+./scripts/smoke-test.sh          # 20 iterations
+./scripts/smoke-test.sh 50       # more traffic
+```
+
+It waits for every component to report ready, sends traffic down both the
+approved and rejected loan paths plus one deliberate 404, then checks:
+
+1. **Prometheus** — `http_server_requests` series exist for both services.
+2. **Loki** — log lines present for both, and it pulls a real `traceId` out of
+   one using the `[app,traceId,spanId]` correlation pattern.
+3. **Tempo** — looks that exact trace up and asserts it spans **both** services,
+   which is what proves context propagated across the internal HTTP call.
+
+Finally it prints Grafana links, including the traceId to paste into Explore.
+Exit code is 0 only if everything arrived, so it works in CI too.
+
+Overridable by environment variable — `LOAN_URL`, `FRAUD_URL`, `LOKI_URL`,
+`TEMPO_URL`, `PROM_URL`, `GRAFANA_URL`, `WAIT_TRIES` — so the same script can be
+pointed at a deployed environment:
+
+```bash
+LOAN_URL=https://loan.jvm.my.id FRAUD_URL=https://fraud.jvm.my.id ./scripts/smoke-test.sh
+```
+
 ## Accessing the services
 
 | Service | URL |
@@ -64,7 +98,7 @@ use the `docker compose` MySQL.
 | Grafana | http://localhost:3000 (log in with `admin` / `admin`, or your `.env` values) — the *Spring Boot Statistics* dashboard is provisioned automatically |
 | Prometheus | http://localhost:9090 |
 | Loki | http://localhost:3100 |
-| Tempo | in-network only — Grafana reaches it at `http://tempo:3200`; the Zipkin ingest port is http://localhost:9411 |
+| Tempo | http://localhost:3200 (HTTP API); Zipkin ingest on http://localhost:9411 |
 | MySQL | `localhost:33081` (user `yu71` / password `53cret`) |
 | Loan Service | http://localhost:8080 |
 | Fraud Detection Service | http://localhost:8081 |

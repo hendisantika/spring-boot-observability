@@ -21,8 +21,10 @@ services:
       - ./docker/tempo/tempo.yml:/etc/tempo.yaml:ro
       - ./docker/tempo/tempo-data:/tmp/tempo
     ports:
-      - "3110:3100"  # Tempo
-      - "9411:9411" # zipkin
+      # Tempo's HTTP API — its own config sets http_listen_port: 3200.
+      # (This was mapped 3110:3100, where nothing listens.)
+      - "3200:3200"
+      - "9411:9411" # zipkin ingest
 
   loki:
     image: grafana/loki:main
