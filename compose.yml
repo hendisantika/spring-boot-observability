@@ -15,7 +15,7 @@ services:
     networks:
       - my-network
   tempo:
-    image: grafana/tempo:2.2.2
+    image: grafana/tempo:3.1.0
     command: [ "-config.file=/etc/tempo.yaml" ]
     volumes:
       - ./docker/tempo/tempo.yml:/etc/tempo.yaml:ro
@@ -33,7 +33,7 @@ services:
       - "3100:3100"
 
   prometheus:
-    image: prom/prometheus:v2.46.0
+    image: prom/prometheus:v3.15.0
     command:
       - --enable-feature=exemplar-storage
       - --config.file=/etc/prometheus/prometheus.yml
@@ -47,7 +47,7 @@ services:
       - "host.docker.internal:host-gateway"
 
   grafana:
-    image: grafana/grafana:12.4.11
+    image: grafana/grafana:13.2.4
     volumes:
       - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
       - ./docker/grafana/dashboards:/var/lib/grafana/dashboards:ro
