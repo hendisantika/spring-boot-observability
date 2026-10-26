@@ -1,5 +1,8 @@
 version: 2
 updates:
+  # One entry covers all three POMs. Combined with the groups below, a bump
+  # that touches every module (e.g. the Spring Boot parent) arrives as a single
+  # PR instead of three that each have to go green on their own.
   - package-ecosystem: maven
     directories:
       - "/"
@@ -7,10 +10,77 @@ updates:
       - "/fraud-detection-service"
     schedule:
       interval: daily
-      time: '05:00'
+      time: "05:00"
       timezone: Asia/Jakarta
     open-pull-requests-limit: 30
-  - package-ecosystem: "github-actions"
+    # Let new releases settle before proposing them; security updates ignore this.
+    cooldown:
+      default-days: 3
+      semver-major-days: 7
+    commit-message:
+      prefix: "build(deps)"
+      prefix-development: "build(deps-dev)"
+      include: scope
+    labels:
+      - dependencies
+      - java
+    groups:
+      spring-boot:
+        patterns:
+          - "org.springframework.boot*"
+      observability:
+        patterns:
+          - "io.micrometer*"
+          - "io.zipkin*"
+          - "net.ttddyy.observation*"
+          - "com.github.loki4j*"
+      database:
+        patterns:
+          - "com.mysql*"
+          - "org.flywaydb*"
+      testing:
+        dependency-type: development
+        patterns:
+          - "org.testcontainers*"
+          - "org.junit*"
+      maven-build:
+        patterns:
+          - "org.apache.maven*"
+
+  - package-ecosystem: github-actions
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: daily
+      time: "05:00"
+      timezone: Asia/Jakarta
+    cooldown:
+      default-days: 3
+    commit-message:
+      prefix: "ci(deps)"
+    labels:
+      - dependencies
+      - github_actions
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+
+  # Images for the local observability stack in compose.yml.
+  - package-ecosystem: docker-compose
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "05:00"
+      timezone: Asia/Jakarta
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: "build(docker)"
+    labels:
+      - dependencies
+    groups:
+      grafana-stack:
+        patterns:
+          - "grafana/*"
+          - "prom/*"
