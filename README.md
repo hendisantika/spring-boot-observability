@@ -1,5 +1,9 @@
 # Spring Boot Observability with Grafana Stack
 
+[![Java CI with Maven](https://github.com/hendisantika/spring-boot-observability/actions/workflows/maven.yml/badge.svg?branch=main)](https://github.com/hendisantika/spring-boot-observability/actions/workflows/maven.yml)
+![JDK](https://img.shields.io/badge/JDK-25-orange)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.2-brightgreen)
+
 Two Spring Boot services — `loan-service` and `fraud-detection-service` — instrumented with Micrometer and
 wired into the Grafana stack: metrics to Prometheus, traces to Tempo (Zipkin protocol), logs to Loki, all
 dashboarded in Grafana.
@@ -9,8 +13,8 @@ dashboarded in Grafana.
 | | |
 |---|---|
 | JDK | **25** (`java.version` is `25` in every module; bytecode is class-file major version 69) |
-| Spring Boot | 4.1.1 |
-| Build | Maven — use the bundled wrapper `./mvnw` |
+| Spring Boot | 4.1.2 |
+| Build | Maven 3.10.0 — use the bundled wrapper `./mvnw` |
 | Runtime deps | Docker + Docker Compose (MySQL and the Grafana stack) |
 | Grafana | 12.4.11 — Angular panels were removed in Grafana 12, see [#103](../../issues/103) |
 | Tests | Testcontainers 2.x — needs a running Docker daemon |
@@ -95,6 +99,30 @@ pointed at a deployed environment:
 ```bash
 LOAN_URL=https://loan.jvm.my.id FRAUD_URL=https://fraud.jvm.my.id ./scripts/smoke-test.sh
 ```
+
+## CI and dependency updates
+
+`.github/workflows/maven.yml` runs on every push and pull request to `main`, on
+Temurin JDK 25:
+
+| Job | What it does |
+|---|---|
+| `build` | `mvn package` for each service (unit + Testcontainers tests), then submits the dependency graph to GitHub |
+| `smoke-test` | Builds the jars, starts the Compose stack and both services, then runs `scripts/smoke-test.sh` |
+
+Dependabot (`.github/dependabot.yml`) keeps three ecosystems current:
+
+| Ecosystem | Schedule | Grouping |
+|---|---|---|
+| Maven (`/`, `/loan-service`, `/fraud-detection-service`) | daily, 05:00 Asia/Jakarta | `spring-boot`, `observability`, `database`, `testing`, `maven-build` |
+| GitHub Actions | daily | one `github-actions` group |
+| Docker Compose images (`compose.yml`) | weekly, Monday | `grafana-stack` (Grafana, Prometheus) |
+
+Maven updates are grouped **across all three POMs**, so a bump such as the
+Spring Boot parent arrives as one PR that changes every module together,
+instead of three PRs that each have to build on their own. A short cooldown
+gives fresh releases a few days to settle (security updates skip it). Commits
+use Conventional Commit prefixes (`build(deps)`, `ci(deps)`, `build(docker)`).
 
 ## Accessing the services
 
